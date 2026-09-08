@@ -1,0 +1,66 @@
+{
+    "manifestVersion": 5,
+    "id": "com.krental.photoshop.autobackup",
+    "name": "Photoshop Auto Backup",
+    "version": "1.0.3",
+    "main": "index.html",
+    "host": [
+        {
+            "app": "PS",
+            "minVersion": "24.0.0"
+        }
+    ],
+    "entrypoints": [
+        {
+            "type": "panel",
+            "id": "autoBackupPanel",
+            "label": {
+                "default": "Auto Backup"
+            },
+            "minimumSize": {
+                "width": 260,
+                "height": 360
+            },
+            "maximumSize": {
+                "width": 1200,
+                "height": 2400
+            },
+            "preferredDockedSize": {
+                "width": 300,
+                "height": 640
+            },
+            "preferredFloatingSize": {
+                "width": 340,
+                "height": 700
+            },
+            "icons": [
+                {
+                    "width": 23,
+                    "height": 23,
+                    "path": "icons/dark.png",
+                    "scale": [1, 2],
+                    "theme": ["darkest", "dark", "medium"]
+                },
+                {
+                    "width": 23,
+                    "height": 23,
+                    "path": "icons/light.png",
+                    "scale": [1, 2],
+                    "theme": ["lightest", "light"]
+                }
+            ]
+        }
+    ],
+    "icons": [
+        {
+            "width": 24,
+            "height": 24,
+            "path": "icons/pluginIcon.png",
+            "scale": [1, 2],
+            "theme": ["darkest", "dark", "medium", "lightest", "light"]
+        }
+    ],
+    "requiredPermissions": {
+        "localFileSystem": "request"
+    }
+}

@@ -1,0 +1,7 @@
+# Packaged plugin builds (attach to GitHub Releases instead of committing)
+/export/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+*.log
