@@ -13,7 +13,7 @@ const logger = require("./logger.js");
 
 const BACKUP_MODES = { PER_PROJECT: "perProject", GLOBAL: "global" };
 
-/** Which document(s) a backup cycle (automatic or "Back up now") targets. */
+/** Which document(s) a backup cycle (automatic or "Backup now") targets. */
 const DOCUMENT_SCOPES = { ACTIVE: "active", ALL_OPEN: "allOpen" };
 
 const ALLOWED_INTERVALS = [1, 2, 5, 10, 15, 30];

@@ -110,7 +110,7 @@ Both modes share the same backup folder — switching from "Per project" to
 "Single global folder" (or back) does not change or lose the selected
 folder, only how backups are organized inside it.
 
-**Back up now** always writes a copy, even when the document has not changed.
+**Backup now** always writes a copy, even when the document has not changed.
 
 ---
 
@@ -143,7 +143,7 @@ as saved, so `saved` would give the wrong answer in both directions.
 
 - Undoing back to a state that already existed reproduces an id that was already
   seen, so the document can look "unchanged" while differing from the last
-  backup. A manual **Back up now** always overrides this.
+  backup. A manual **Backup now** always overrides this.
 - Operations that do not push a new history state are not detected.
 - If the history state cannot be read at all, the plugin behaves conservatively
   and performs the backup.
@@ -207,7 +207,7 @@ this as a *skip*, not a failure, and retries at the next interval.
 ## Multi-document behaviour
 
 Photoshop can have several documents open. The **Documents** setting decides
-which ones a backup cycle (automatic or "Back up now") targets:
+which ones a backup cycle (automatic or "Backup now") targets:
 
 - **Active document only** (default) — backs up whichever document is active
   when the cycle runs.
@@ -225,6 +225,18 @@ cycle (every document in it) is treated as one unit for the concurrency lock
 described below — a slow cycle is never started twice in parallel, but one
 document's failure or a modal-busy retry does not abort the rest of the
 cycle.
+
+**Visual side effect of "All open documents".** Photoshop's document engine
+operates on whichever document is currently active/frontmost — a document
+must briefly become the active tab for `saveAs` to run against it, and this
+is Photoshop's own long-standing behaviour (it predates UXP), not something
+the plugin does deliberately and not something UXP exposes a way to avoid.
+With several open documents, a cycle therefore flips through each one's tab
+in turn while it is being saved. Photoshop returns focus to whichever
+document was active before the cycle started once it finishes, so the
+interruption is transient rather than leaving you on a different document —
+but it can still be visually disruptive if you are actively working while an
+automatic cycle runs across many open documents.
 
 ---
 

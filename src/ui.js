@@ -316,7 +316,7 @@ function setError(message) {
 
 function setBusy(busy) {
     elements.backupNow.disabled = busy === true;
-    elements.backupNow.textContent = busy ? "Backing up…" : "Back up now";
+    elements.backupNow.textContent = busy ? "Backing up…" : "Backup now";
 }
 
 function pad2(value) {

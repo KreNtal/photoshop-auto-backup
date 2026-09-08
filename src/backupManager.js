@@ -270,7 +270,7 @@ async function backupOneDocument(doc, opts) {
  *        trigger:  "manual" | "auto"
  *        force:    ignore the "only if changed" option
  *        document: back up exactly this document, ignoring the configured
- *                  scope (used by "Back up now" when it should always target
+ *                  scope (used by "Backup now" when it should always target
  *                  the active document, and by tests)
  * @returns {Promise<object>} a summary: { status, results, project?,
  *          message?, code?, okCount, skippedCount, errorCount }
