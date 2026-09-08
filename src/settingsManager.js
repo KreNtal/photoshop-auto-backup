@@ -24,8 +24,7 @@ const DEFAULTS = {
     enabled: false,
     intervalMinutes: 5,
     backupMode: BACKUP_MODES.PER_PROJECT,
-    projectRootFolderToken: null,
-    globalBackupFolderToken: null,
+    backupFolderToken: null,
     maxBackups: 20,
     backupOnlyIfChanged: true,
     onboardingDone: false,
@@ -81,15 +80,24 @@ function validate(raw) {
     result.backupMode =
         raw.backupMode === BACKUP_MODES.GLOBAL ? BACKUP_MODES.GLOBAL : BACKUP_MODES.PER_PROJECT;
 
-    result.projectRootFolderToken =
-        typeof raw.projectRootFolderToken === "string" && raw.projectRootFolderToken
-            ? raw.projectRootFolderToken
-            : null;
-
-    result.globalBackupFolderToken =
-        typeof raw.globalBackupFolderToken === "string" && raw.globalBackupFolderToken
-            ? raw.globalBackupFolderToken
-            : null;
+    if (typeof raw.backupFolderToken === "string" && raw.backupFolderToken) {
+        result.backupFolderToken = raw.backupFolderToken;
+    } else {
+        // Migration from the earlier per-mode tokens (< v1.2.0), which kept a
+        // separate folder for "per project" and "global" mode. Both modes now
+        // share a single folder, so pick whichever of the old tokens exists,
+        // preferring the one matching the previously active mode.
+        const legacyProject =
+            typeof raw.projectRootFolderToken === "string" && raw.projectRootFolderToken
+                ? raw.projectRootFolderToken
+                : null;
+        const legacyGlobal =
+            typeof raw.globalBackupFolderToken === "string" && raw.globalBackupFolderToken
+                ? raw.globalBackupFolderToken
+                : null;
+        const preferred = raw.backupMode === BACKUP_MODES.GLOBAL ? legacyGlobal : legacyProject;
+        result.backupFolderToken = preferred || legacyProject || legacyGlobal || null;
+    }
 
     const maxBackups = toInt(raw.maxBackups, DEFAULTS.maxBackups);
     result.maxBackups = maxBackups >= 0 && maxBackups <= 10000 ? maxBackups : DEFAULTS.maxBackups;
@@ -189,23 +197,18 @@ function removeProjectState(projectKey) {
 
 /* ------------------------- Folders ----------------------------- */
 
-/** Token of the folder that belongs to the active mode. */
+/**
+ * Token of the backup folder. Both modes ("per project" and "global") share
+ * the same folder: only what the plugin does inside it differs (a subfolder
+ * per project, or everything flat).
+ */
 function getActiveFolderToken(settings) {
     const data = settings || ensureLoaded();
-    return data.backupMode === BACKUP_MODES.GLOBAL
-        ? data.globalBackupFolderToken
-        : data.projectRootFolderToken;
+    return data.backupFolderToken;
 }
 
 function setActiveFolderToken(token) {
-    ensureLoaded();
-    const patch = {};
-    if (current.backupMode === BACKUP_MODES.GLOBAL) {
-        patch.globalBackupFolderToken = token;
-    } else {
-        patch.projectRootFolderToken = token;
-    }
-    return update(patch);
+    return update({ backupFolderToken: token });
 }
 
 function reset() {

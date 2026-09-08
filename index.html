@@ -46,10 +46,12 @@
         <!-- Mode -->
         <div class="block">
             <span class="label">Mode</span>
-            <sp-radio-group id="modeGroup" column>
-                <sp-radio id="modePerProject" value="perProject">Per project</sp-radio>
-                <sp-radio id="modeGlobal" value="global">Single global folder</sp-radio>
-            </sp-radio-group>
+            <sp-picker id="modePicker" size="s" class="full">
+                <sp-menu slot="options">
+                    <sp-menu-item value="perProject">Per project (in subfolders)</sp-menu-item>
+                    <sp-menu-item value="global">Single global folder</sp-menu-item>
+                </sp-menu>
+            </sp-picker>
         </div>
 
         <!-- Folder -->

@@ -32,9 +32,7 @@ function cacheElements() {
         "customInterval",
         "customIntervalApply",
         "backupNow",
-        "modeGroup",
-        "modePerProject",
-        "modeGlobal",
+        "modePicker",
         "folderPath",
         "openFolder",
         "changeFolder",
@@ -142,23 +140,6 @@ function readPickerValue(picker, event) {
     return selected ? String(selected.getAttribute("value")) : null;
 }
 
-function readRadioGroupValue() {
-    if (elements.modeGlobal && elements.modeGlobal.checked) {
-        return settingsManager.BACKUP_MODES.GLOBAL;
-    }
-    return settingsManager.BACKUP_MODES.PER_PROJECT;
-}
-
-function setRadioGroupValue(mode) {
-    const isGlobal = mode === settingsManager.BACKUP_MODES.GLOBAL;
-    if (elements.modePerProject) {
-        elements.modePerProject.checked = !isGlobal;
-    }
-    if (elements.modeGlobal) {
-        elements.modeGlobal.checked = isGlobal;
-    }
-}
-
 function show(element, visible) {
     if (!element) {
         return;
@@ -224,12 +205,11 @@ function bindEvents() {
 
     elements.backupNow.addEventListener("click", () => call("backupNow"));
 
-    elements.modeGroup.addEventListener("change", () => call("changeMode", readRadioGroupValue()));
-    elements.modePerProject.addEventListener("click", () => {
-        call("changeMode", settingsManager.BACKUP_MODES.PER_PROJECT);
-    });
-    elements.modeGlobal.addEventListener("click", () => {
-        call("changeMode", settingsManager.BACKUP_MODES.GLOBAL);
+    elements.modePicker.addEventListener("change", (event) => {
+        const value = readPickerValue(elements.modePicker, event);
+        if (value) {
+            call("changeMode", value);
+        }
     });
 
     elements.openFolder.addEventListener("click", () => call("openFolder"));
@@ -272,7 +252,7 @@ function applySettings(settings, folderPath) {
     show(elements.customIntervalRow, !isPreset);
     elements.customInterval.value = String(settings.intervalMinutes);
 
-    setRadioGroupValue(settings.backupMode);
+    setPickerValue(elements.modePicker, settings.backupMode);
 
     const isMaxBackupsPreset = settingsManager.ALLOWED_MAX_BACKUPS.indexOf(settings.maxBackups) >= 0;
     setPickerValue(elements.maxBackupsPicker, isMaxBackupsPreset ? String(settings.maxBackups) : "custom");
@@ -287,10 +267,7 @@ function applySettings(settings, folderPath) {
         elements.folderPath.textContent = folderPath;
         elements.folderPath.classList.remove("muted");
     } else {
-        elements.folderPath.textContent =
-            settings.backupMode === settingsManager.BACKUP_MODES.GLOBAL
-                ? "No global folder selected"
-                : "No root folder selected";
+        elements.folderPath.textContent = "No backup folder selected";
         elements.folderPath.classList.add("muted");
     }
 }

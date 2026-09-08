@@ -105,8 +105,9 @@ a folder with **Change**.
 | Maximum backups | 1, 3, 5, 10, 20, Unlimited, or custom (1–10000) | 20 |
 | Back up only if changed | on / off | on |
 
-Each mode remembers its own folder: switching between "per project" and "global"
-does not lose the other folder's permission.
+Both modes share the same backup folder — switching from "Per project" to
+"Single global folder" (or back) does not change or lose the selected
+folder, only how backups are organized inside it.
 
 **Back up now** always writes a copy, even when the document has not changed.
 
@@ -264,12 +265,17 @@ Settings live in `localStorage` under the key
 `com.lusprite.photoshop.autobackup.settings.v1`:
 
 ```
-enabled, intervalMinutes, backupMode, projectRootFolderToken,
-globalBackupFolderToken, maxBackups, backupOnlyIfChanged, onboardingDone,
+enabled, intervalMinutes, backupMode, backupFolderToken,
+maxBackups, backupOnlyIfChanged, onboardingDone,
 projects { <projectKey>: { name, folderName, lastBackupAt,
                            lastBackupFileName, lastBackupFolderPath,
                            lastSignature } }
 ```
+
+Both modes ("Per project" and "Single global folder") share the same
+`backupFolderToken` — switching modes never loses or swaps the folder, it
+only changes what the plugin does inside it (a subfolder per project, or
+everything flat).
 
 Folder access is stored **only** as a persistent token; the readable path shown in
 the panel is resolved from the token at runtime and is not the source of truth.
