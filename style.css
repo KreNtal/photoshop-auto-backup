@@ -111,6 +111,12 @@ body {
     word-break: break-all;
 }
 
+.exclude-checkbox {
+    display: block;
+    margin-top: 5px;
+    font-size: 10px;
+}
+
 .muted {
     color: #a8a8a8;
 }
@@ -183,6 +189,13 @@ body {
     color: #f0a0a4;
     line-height: 1.35;
     word-break: break-word;
+}
+
+.warning-text {
+    font-size: 10px;
+    color: #e8c07d;
+    line-height: 1.35;
+    margin: 4px 0 0 0;
 }
 
 /* ---------- Log ---------- */

@@ -52,6 +52,8 @@
                     <sp-menu-item value="allOpen">All open documents</sp-menu-item>
                 </sp-menu>
             </sp-picker>
+            <p id="scopeWarning" class="warning-text hidden">Photoshop briefly switches to each
+                document's tab while saving it, then returns to the one you were on.</p>
         </div>
 
         <!-- Mode -->
@@ -133,6 +135,7 @@
         <div class="block">
             <span class="label">Document</span>
             <div id="documentInfo" class="value muted">—</div>
+            <sp-checkbox id="excludeDocument" class="exclude-checkbox">Exclude this document from backups</sp-checkbox>
         </div>
 
         <div class="block">

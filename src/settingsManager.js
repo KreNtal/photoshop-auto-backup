@@ -29,10 +29,15 @@ const DEFAULTS = {
     backupMode: BACKUP_MODES.PER_PROJECT,
     backupFolderToken: null,
     documentScope: DOCUMENT_SCOPES.ACTIVE,
-    maxBackups: 20,
+    maxBackups: 5,
     backupOnlyIfChanged: true,
     onboardingDone: false,
-    projects: {}
+    projects: {},
+    // Project keys the user chose to exclude ("never back this one up"), kept
+    // separate from `projects` because exclusion is a preference that can be
+    // set before a project has ever been backed up, unlike the fields in
+    // `projects` which are all backup history.
+    excludedProjects: {}
 };
 
 let current = null;
@@ -124,6 +129,15 @@ function validate(raw) {
         }
     }
 
+    result.excludedProjects = {};
+    if (raw.excludedProjects && typeof raw.excludedProjects === "object") {
+        for (const key of Object.keys(raw.excludedProjects)) {
+            if (raw.excludedProjects[key] === true) {
+                result.excludedProjects[key] = true;
+            }
+        }
+    }
+
     return result;
 }
 
@@ -161,8 +175,11 @@ function persist() {
 function update(patch, options) {
     ensureLoaded();
     const projects = current.projects;
+    const excludedProjects = current.excludedProjects;
     const merged = validate(Object.assign({}, current, patch || {}));
-    merged.projects = projects; // project state is only changed by the dedicated methods
+    // Project history and exclusions are only changed by their dedicated methods.
+    merged.projects = projects;
+    merged.excludedProjects = excludedProjects;
     current = merged;
     persist();
     if (!options || options.silent !== true) {
@@ -204,6 +221,24 @@ function removeProjectState(projectKey) {
     }
 }
 
+/* --------------------- Per-project exclusion --------------------- */
+
+function isProjectExcluded(projectKey) {
+    ensureLoaded();
+    return current.excludedProjects[projectKey] === true;
+}
+
+function setProjectExcluded(projectKey, excluded) {
+    ensureLoaded();
+    if (excluded) {
+        current.excludedProjects[projectKey] = true;
+    } else {
+        delete current.excludedProjects[projectKey];
+    }
+    persist();
+    notify();
+}
+
 /* ------------------------- Folders ----------------------------- */
 
 /**
@@ -243,6 +278,8 @@ module.exports = {
     getProjectState,
     setProjectState,
     removeProjectState,
+    isProjectExcluded,
+    setProjectExcluded,
     getActiveFolderToken,
     setActiveFolderToken,
     reset,

@@ -33,6 +33,7 @@ function cacheElements() {
         "customIntervalApply",
         "backupNow",
         "scopePicker",
+        "scopeWarning",
         "modePicker",
         "folderPath",
         "openFolder",
@@ -43,6 +44,7 @@ function cacheElements() {
         "customMaxBackupsApply",
         "onlyIfChanged",
         "documentInfo",
+        "excludeDocument",
         "lastBackup",
         "nextBackup",
         "statusDot",
@@ -152,6 +154,10 @@ function show(element, visible) {
     }
 }
 
+function updateScopeWarning(scope) {
+    show(elements.scopeWarning, scope === settingsManager.DOCUMENT_SCOPES.ALL_OPEN);
+}
+
 /* ------------------------------------------------------------------ */
 /* Event wiring                                                        */
 /* ------------------------------------------------------------------ */
@@ -209,6 +215,7 @@ function bindEvents() {
     elements.scopePicker.addEventListener("change", (event) => {
         const value = readPickerValue(elements.scopePicker, event);
         if (value) {
+            updateScopeWarning(value);
             call("changeScope", value);
         }
     });
@@ -245,6 +252,10 @@ function bindEvents() {
     });
 
     elements.clearLog.addEventListener("click", () => call("clearLog"));
+
+    elements.excludeDocument.addEventListener("change", () => {
+        call("toggleExclude", elements.excludeDocument.checked === true);
+    });
 }
 
 /* ------------------------------------------------------------------ */
@@ -261,6 +272,7 @@ function applySettings(settings, folderPath) {
     elements.customInterval.value = String(settings.intervalMinutes);
 
     setPickerValue(elements.scopePicker, settings.documentScope);
+    updateScopeWarning(settings.documentScope);
     setPickerValue(elements.modePicker, settings.backupMode);
 
     const isMaxBackupsPreset = settingsManager.ALLOWED_MAX_BACKUPS.indexOf(settings.maxBackups) >= 0;
@@ -283,6 +295,16 @@ function applySettings(settings, folderPath) {
 
 function setDocumentInfo(text) {
     elements.documentInfo.textContent = text || "—";
+}
+
+/**
+ * Reflects exclusion state for whichever document is currently active. The
+ * checkbox always targets the active document, independent of the
+ * "Documents" scope setting.
+ */
+function setExcludeCheckbox(checked, disabled) {
+    elements.excludeDocument.checked = checked === true;
+    elements.excludeDocument.disabled = disabled === true;
 }
 
 function setLastBackup(text) {
@@ -383,6 +405,7 @@ module.exports = {
     init,
     applySettings,
     setDocumentInfo,
+    setExcludeCheckbox,
     setLastBackup,
     setNextBackup,
     setStatus,

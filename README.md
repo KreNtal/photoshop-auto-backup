@@ -103,7 +103,7 @@ a folder with **Change**.
 | Interval | 1, 2, 5, 10, 15, 30 minutes, or custom (1–1440) | 5 minutes |
 | Mode | Per project (in subfolders) / Single global folder | Per project |
 | Backup folder | any folder you grant access to | — |
-| Maximum backups | 1, 3, 5, 10, 20, Unlimited, or custom (1–10000) | 20 |
+| Maximum backups | 1, 3, 5, 10, 20, Unlimited, or custom (1–10000) | 5 |
 | Back up only if changed | on / off | on |
 
 Both modes share the same backup folder — switching from "Per project" to
@@ -238,6 +238,22 @@ interruption is transient rather than leaving you on a different document —
 but it can still be visually disruptive if you are actively working while an
 automatic cycle runs across many open documents.
 
+### Excluding specific documents
+
+Any document can be excluded from backups with the **"Exclude this document
+from backups"** checkbox, shown under the **Document** line in the panel. It
+always targets whichever document is currently active — to exclude another
+one, switch to it first and check the box there.
+
+Exclusion is an absolute block: unlike "back up only if changed", it is
+**not** overridden by "Backup now" or by `force`. To get a one-off backup of
+an excluded document, uncheck the box first.
+
+Exclusions are stored per project (by the same normalised path used for
+backup history), independently of `settings.projects`, so a document can be
+excluded before it has ever been backed up. As with backup history, renaming
+or moving the file changes its identity, so the exclusion does not follow it.
+
 ---
 
 ## Concurrency
@@ -254,11 +270,12 @@ the previous run has finished.
 Handled explicitly, each with its own message in the panel:
 
 no document open · document never saved · cloud document · unsupported format ·
-no backup folder configured · backup folder unavailable · persistent token no
-longer valid · subfolder creation failure · file creation failure · name
-collision · `saveAs` failure · Photoshop busy in a modal state · not enough disk
-space · document closed mid-backup · active document changed mid-backup ·
-backup already running · plugin restarted · Photoshop restarted.
+document excluded from backups · no backup folder configured · backup folder
+unavailable · persistent token no longer valid · subfolder creation failure ·
+file creation failure · name collision · `saveAs` failure · Photoshop busy in
+a modal state · not enough disk space · document closed mid-backup · active
+document changed mid-backup · backup already running · plugin restarted ·
+Photoshop restarted.
 
 Errors surface in three places: the red status dot, the "Last error" box, and the
 log list.
@@ -289,7 +306,8 @@ enabled, intervalMinutes, backupMode, backupFolderToken, documentScope,
 maxBackups, backupOnlyIfChanged, onboardingDone,
 projects { <projectKey>: { name, folderName, lastBackupAt,
                            lastBackupFileName, lastBackupFolderPath,
-                           lastSignature } }
+                           lastSignature } },
+excludedProjects { <projectKey>: true }
 ```
 
 Both modes ("Per project" and "Single global folder") share the same

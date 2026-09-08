@@ -144,6 +144,24 @@ async function backupOneDocument(doc, opts) {
         descriptor = projectManager.getProjectDescriptor(info);
         lock.project = descriptor.name;
 
+        // 1b. Exclusion is an absolute block: unlike "only if changed", `force`
+        // does not override it. To back up an excluded document once, it has
+        // to be un-excluded first.
+        if (settingsManager.isProjectExcluded(descriptor.key)) {
+            const error = new BackupError(CODES.DOCUMENT_EXCLUDED);
+            if (trigger === "manual") {
+                logger.info(error.message, { project: descriptor.name });
+            } else {
+                console.log("[AutoBackup] Automatic backup skipped: " + error.message);
+            }
+            return {
+                status: RESULT.SKIPPED,
+                code: error.code,
+                message: error.message,
+                project: descriptor.name
+            };
+        }
+
         const settings = settingsManager.get();
         const projectState = settingsManager.getProjectState(descriptor.key);
 

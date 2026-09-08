@@ -12,6 +12,7 @@ const CODES = {
     UNSAVED_DOCUMENT: "UNSAVED_DOCUMENT",
     CLOUD_DOCUMENT: "CLOUD_DOCUMENT",
     UNSUPPORTED_FORMAT: "UNSUPPORTED_FORMAT",
+    DOCUMENT_EXCLUDED: "DOCUMENT_EXCLUDED",
     NO_FOLDER_CONFIGURED: "NO_FOLDER_CONFIGURED",
     FOLDER_UNAVAILABLE: "FOLDER_UNAVAILABLE",
     SUBFOLDER_FAILED: "SUBFOLDER_FAILED",
@@ -33,6 +34,8 @@ const MESSAGES = {
     CLOUD_DOCUMENT:
         "This is a Photoshop cloud document. UXP cannot write a local copy of it with saveAs: save it as a local PSD/PSB file to use automatic backups.",
     UNSUPPORTED_FORMAT: "Unsupported format. This version backs up PSD and PSB documents only.",
+    DOCUMENT_EXCLUDED:
+        'This document is excluded from backups. Uncheck "Exclude this document" to include it again.',
     NO_FOLDER_CONFIGURED: 'No backup folder configured. Press "Change" and pick a folder.',
     FOLDER_UNAVAILABLE:
         'The backup folder is no longer reachable (drive disconnected, folder moved, or the permission expired). Select it again with "Change".',

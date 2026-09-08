@@ -165,8 +165,14 @@ function getCurrentProject() {
 
 function describeOpenDocuments() {
     const infos = documentManager.getOpenDocuments().map((doc) => documentManager.describe(doc));
-    const supported = infos.filter((info) => info.supported).length;
-    return { total: infos.length, supported: supported };
+    const eligible = infos.filter((info) => {
+        if (!info.supported) {
+            return false;
+        }
+        const key = projectManager.getProjectDescriptor(info).key;
+        return !settingsManager.isProjectExcluded(key);
+    }).length;
+    return { total: infos.length, supported: eligible };
 }
 
 function describeDocumentLine(current, settings) {
@@ -239,6 +245,8 @@ function computeStatus(settings, current) {
         }
     } else if (!current.info.supported) {
         return { kind: ui.STATUS.IDLE, text: "Waiting for a supported document" };
+    } else if (settingsManager.isProjectExcluded(current.descriptor.key)) {
+        return { kind: ui.STATUS.IDLE, text: "Active document is excluded" };
     }
     return { kind: ui.STATUS.ACTIVE, text: "Active" };
 }
@@ -251,6 +259,10 @@ function refreshDynamic() {
     const current = getCurrentProject();
 
     ui.setDocumentInfo(describeDocumentLine(current, settings));
+    ui.setExcludeCheckbox(
+        current.info.supported ? settingsManager.isProjectExcluded(current.descriptor.key) : false,
+        !current.info.supported
+    );
     ui.setLastBackup(describeLastBackup(current, settings));
     ui.setNextBackup(describeNextBackup(settings));
     ui.setBusy(backupManager.isBusy());
@@ -410,6 +422,19 @@ const handlers = {
     clearLog() {
         logger.clear();
         runtime.lastErrorMessage = null;
+        refreshAll();
+    },
+
+    toggleExclude(excluded) {
+        const current = getCurrentProject();
+        if (!current.info.supported) {
+            return;
+        }
+        settingsManager.setProjectExcluded(current.descriptor.key, excluded === true);
+        logger.info(
+            excluded ? "Excluded from backups." : "No longer excluded from backups.",
+            { project: current.descriptor.name }
+        );
         refreshAll();
     }
 };
