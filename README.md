@@ -330,6 +330,7 @@ photoshop-auto-backup/
 | Folder contents | `Folder.getEntries()`, `Folder.createEntry(name, {type})` |
 | File creation | `Folder.createFile(name, { overwrite: false })` |
 | Deletion | `Entry.delete()` |
+| Open folder in file explorer | `require("uxp").shell.openPath(path, developerText)` |
 | Panel lifecycle | `require("uxp").entrypoints.setup({ panels })` |
 
 `batchPlay` is not used: every operation this plugin needs is available through

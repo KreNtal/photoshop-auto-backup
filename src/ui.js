@@ -36,6 +36,7 @@ function cacheElements() {
         "modePerProject",
         "modeGlobal",
         "folderPath",
+        "openFolder",
         "changeFolder",
         "maxBackupsPicker",
         "customMaxBackupsRow",
@@ -231,6 +232,7 @@ function bindEvents() {
         call("changeMode", settingsManager.BACKUP_MODES.GLOBAL);
     });
 
+    elements.openFolder.addEventListener("click", () => call("openFolder"));
     elements.changeFolder.addEventListener("click", () => call("chooseFolder"));
 
     elements.maxBackupsPicker.addEventListener("change", (event) => {
@@ -278,6 +280,8 @@ function applySettings(settings, folderPath) {
     elements.customMaxBackups.value = String(settings.maxBackups);
 
     elements.onlyIfChanged.checked = settings.backupOnlyIfChanged === true;
+
+    elements.openFolder.disabled = !folderPath;
 
     if (folderPath) {
         elements.folderPath.textContent = folderPath;

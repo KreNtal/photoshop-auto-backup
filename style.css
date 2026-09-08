@@ -94,6 +94,10 @@ body {
     margin-bottom: 9px;
 }
 
+.row-gap {
+    gap: 6px;
+}
+
 .label {
     font-size: 10px;
     text-transform: uppercase;

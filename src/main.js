@@ -323,6 +323,20 @@ const handlers = {
         }
     },
 
+    async openFolder() {
+        if (!runtime.folderPath) {
+            return;
+        }
+        const result = await storageManager.openInFileExplorer(
+            runtime.folderPath,
+            "Open the Photoshop Auto Backup folder in your file explorer."
+        );
+        if (!result.ok) {
+            runtime.lastErrorMessage = "Could not open the backup folder: " + result.error;
+            refreshAll();
+        }
+    },
+
     changeMaxBackups(value) {
         if (!Number.isFinite(value) || value < 0) {
             return;

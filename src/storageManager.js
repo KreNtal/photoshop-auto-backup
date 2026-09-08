@@ -5,6 +5,7 @@
  * The single point of contact with:
  *  - localStorage (settings persistence, available in UXP)
  *  - uxp.storage.localFileSystem (pickers, persistent tokens, disk entries)
+ *  - uxp.shell (handing a native path to the OS file explorer)
  *
  * UXP note: a plugin has no arbitrary file system access. Every folder must be
  * granted by the user through the picker; the grant is then kept with
@@ -19,6 +20,7 @@ const { BackupError, CODES, fromNative } = require("./errors.js");
 
 const fs = uxp.storage.localFileSystem;
 const entryTypes = uxp.storage.types;
+const shell = uxp.shell;
 
 const STORAGE_KEY = "com.lusprite.photoshop.autobackup.settings.v1";
 
@@ -206,6 +208,30 @@ function getNativePath(entry) {
     }
 }
 
+/**
+ * Opens a native path in the OS file explorer (Explorer on Windows, Finder on
+ * macOS). Photoshop shows the user a one-time consent dialog the first time a
+ * given path is opened this way; `developerText` is the explanation shown in
+ * that dialog.
+ * @returns {Promise<{ok: boolean, error?: string}>}
+ */
+async function openInFileExplorer(nativePath, developerText) {
+    if (!nativePath) {
+        return { ok: false, error: "No folder path to open." };
+    }
+    try {
+        const result = await shell.openPath(nativePath, developerText || "");
+        // openPath resolves with "" on success, or an error message string.
+        if (result) {
+            return { ok: false, error: result };
+        }
+        return { ok: true };
+    } catch (err) {
+        const wrapped = fromNative(err, CODES.FOLDER_UNAVAILABLE);
+        return { ok: false, error: wrapped.message };
+    }
+}
+
 module.exports = {
     STORAGE_KEY,
     readSettings,
@@ -220,5 +246,6 @@ module.exports = {
     fileExists,
     deleteEntry,
     getEntryMetadata,
-    getNativePath
+    getNativePath,
+    openInFileExplorer
 };
