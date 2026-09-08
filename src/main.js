@@ -163,14 +163,47 @@ function getCurrentProject() {
     };
 }
 
-function describeDocumentLine(current) {
+function describeOpenDocuments() {
+    const infos = documentManager.getOpenDocuments().map((doc) => documentManager.describe(doc));
+    const supported = infos.filter((info) => info.supported).length;
+    return { total: infos.length, supported: supported };
+}
+
+function describeDocumentLine(current, settings) {
+    if (settings.documentScope === settingsManager.DOCUMENT_SCOPES.ALL_OPEN) {
+        const open = describeOpenDocuments();
+        if (open.total === 0) {
+            return MESSAGES.NO_DOCUMENT;
+        }
+        const noun = open.total === 1 ? "document" : "documents";
+        return open.total + " open " + noun + " (" + open.supported + " eligible for backup)";
+    }
     if (current.info.supported) {
         return current.descriptor.name + " (" + current.info.format.toUpperCase() + ")";
     }
     return MESSAGES[current.info.reason] || MESSAGES.NO_DOCUMENT;
 }
 
-function describeLastBackup(current) {
+/** Most recently created backup across every tracked project. */
+function findMostRecentBackup(settings) {
+    let best = null;
+    for (const key of Object.keys(settings.projects)) {
+        const state = settings.projects[key];
+        if (state.lastBackupAt && (!best || state.lastBackupAt > best.lastBackupAt)) {
+            best = state;
+        }
+    }
+    return best;
+}
+
+function describeLastBackup(current, settings) {
+    if (settings.documentScope === settingsManager.DOCUMENT_SCOPES.ALL_OPEN) {
+        const best = findMostRecentBackup(settings);
+        if (!best) {
+            return "No backup yet";
+        }
+        return best.lastBackupFileName + "  ·  " + ui.formatClock(best.lastBackupAt);
+    }
     if (!current.state || !current.state.lastBackupAt) {
         return "No backup yet for this project";
     }
@@ -200,7 +233,11 @@ function computeStatus(settings, current) {
     if (!settings.enabled) {
         return { kind: ui.STATUS.IDLE, text: "Automatic backup off" };
     }
-    if (!current.info.supported) {
+    if (settings.documentScope === settingsManager.DOCUMENT_SCOPES.ALL_OPEN) {
+        if (describeOpenDocuments().supported === 0) {
+            return { kind: ui.STATUS.IDLE, text: "Waiting for a supported document" };
+        }
+    } else if (!current.info.supported) {
         return { kind: ui.STATUS.IDLE, text: "Waiting for a supported document" };
     }
     return { kind: ui.STATUS.ACTIVE, text: "Active" };
@@ -213,8 +250,8 @@ function refreshDynamic() {
     const settings = settingsManager.get();
     const current = getCurrentProject();
 
-    ui.setDocumentInfo(describeDocumentLine(current));
-    ui.setLastBackup(describeLastBackup(current));
+    ui.setDocumentInfo(describeDocumentLine(current, settings));
+    ui.setLastBackup(describeLastBackup(current, settings));
     ui.setNextBackup(describeNextBackup(settings));
     ui.setBusy(backupManager.isBusy());
 
@@ -300,6 +337,21 @@ const handlers = {
     async backupNow() {
         // A manual backup always writes a copy, even when nothing changed.
         await runBackup("manual", true);
+    },
+
+    changeScope(scope) {
+        const settings = settingsManager.get();
+        if (settings.documentScope === scope) {
+            return;
+        }
+        settingsManager.update({ documentScope: scope });
+        logger.info(
+            "Documents to back up: " +
+                (scope === settingsManager.DOCUMENT_SCOPES.ALL_OPEN
+                    ? "all open documents"
+                    : "active document only")
+        );
+        refreshAll();
     },
 
     async changeMode(mode) {

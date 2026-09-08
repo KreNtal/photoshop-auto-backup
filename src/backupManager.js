@@ -115,39 +115,20 @@ async function removeFailedPlaceholder(file, name) {
 }
 
 /**
- * Runs one backup.
- * @param {{trigger?: string, force?: boolean, document?: object}} options
- *        trigger:  "manual" | "auto"
- *        force:    ignore the "only if changed" option
- *        document: a specific document (groundwork for multi-document backup)
+ * Backs up a single document. Does not touch the cycle-level lock — the
+ * caller (runBackup) owns that, so this can be looped over several documents
+ * within one cycle without one document's failure blocking the others.
+ * @param {object} doc a Photoshop Document
+ * @param {{trigger?: string, force?: boolean}} opts
  * @returns {Promise<object>} { status, code?, message?, fileName?, project? }
  */
-async function runBackup(options) {
-    const opts = options || {};
+async function backupOneDocument(doc, opts) {
     const trigger = opts.trigger || "manual";
-
-    if (lock.busy) {
-        const suffix = lock.project ? " (" + lock.project + ")" : "";
-        const message = "A backup is already running" + suffix + "; this run was skipped.";
-        if (trigger === "manual") {
-            logger.warn(message);
-        } else {
-            console.log("[AutoBackup] " + message);
-        }
-        return { status: RESULT.SKIPPED, code: CODES.BACKUP_IN_PROGRESS, message: message };
-    }
-
-    lock.busy = true;
-    lock.since = Date.now();
-    lock.project = null;
-    notify({ type: "start", trigger: trigger });
-
     let descriptor = null;
 
     try {
-        // 1. Reference document, captured ONCE: if the user switches the active
-        //    document while saving, we keep working on this one.
-        const doc = opts.document || documentManager.getActiveDocument();
+        // Reference document, captured ONCE: if the user switches the active
+        // document while saving, we keep working on this one.
         const info = documentManager.describe(doc);
 
         if (!info.supported) {
@@ -276,6 +257,115 @@ async function runBackup(options) {
         };
         notify({ type: "error", result: failure });
         return failure;
+    }
+}
+
+/**
+ * Runs a backup cycle: one call, but it may cover several documents when the
+ * "all open documents" scope is active. A single cycle-level lock spans the
+ * whole cycle, so two cycles never overlap — but one document failing does
+ * not stop the others in the same cycle from being attempted.
+ *
+ * @param {{trigger?: string, force?: boolean, document?: object}} options
+ *        trigger:  "manual" | "auto"
+ *        force:    ignore the "only if changed" option
+ *        document: back up exactly this document, ignoring the configured
+ *                  scope (used by "Back up now" when it should always target
+ *                  the active document, and by tests)
+ * @returns {Promise<object>} a summary: { status, results, project?,
+ *          message?, code?, okCount, skippedCount, errorCount }
+ */
+async function runBackup(options) {
+    const opts = options || {};
+    const trigger = opts.trigger || "manual";
+
+    if (lock.busy) {
+        const suffix = lock.project ? " (" + lock.project + ")" : "";
+        const message = "A backup is already running" + suffix + "; this run was skipped.";
+        if (trigger === "manual") {
+            logger.warn(message);
+        } else {
+            console.log("[AutoBackup] " + message);
+        }
+        return { status: RESULT.SKIPPED, code: CODES.BACKUP_IN_PROGRESS, message: message };
+    }
+
+    lock.busy = true;
+    lock.since = Date.now();
+    lock.project = null;
+    notify({ type: "start", trigger: trigger });
+
+    try {
+        const settings = settingsManager.get();
+
+        let documents;
+        if (opts.document) {
+            documents = [opts.document];
+        } else if (settings.documentScope === settingsManager.DOCUMENT_SCOPES.ALL_OPEN) {
+            documents = documentManager.getOpenDocuments();
+        } else {
+            const active = documentManager.getActiveDocument();
+            documents = active ? [active] : [];
+        }
+
+        if (documents.length === 0) {
+            const error = new BackupError(CODES.NO_DOCUMENT);
+            if (trigger === "manual") {
+                logger.error(error.message);
+            } else {
+                console.log("[AutoBackup] Automatic backup skipped: " + error.message);
+            }
+            const skipped = { status: RESULT.SKIPPED, code: error.code, message: error.message };
+            notify({ type: "skipped", result: skipped });
+            return skipped;
+        }
+
+        const results = [];
+        for (const doc of documents) {
+            try {
+                lock.project = documentManager.describe(doc).title || null;
+            } catch (err) {
+                lock.project = null;
+            }
+            results.push(await backupOneDocument(doc, opts));
+        }
+
+        const okCount = results.filter((r) => r.status === RESULT.OK).length;
+        const errorCount = results.filter((r) => r.status === RESULT.ERROR).length;
+        const skippedCount = results.filter((r) => r.status === RESULT.SKIPPED).length;
+
+        let status = RESULT.SKIPPED;
+        if (errorCount > 0) {
+            status = RESULT.ERROR;
+        } else if (okCount > 0) {
+            status = RESULT.OK;
+        }
+
+        const summary = {
+            status: status,
+            results: results,
+            okCount: okCount,
+            errorCount: errorCount,
+            skippedCount: skippedCount,
+            // Single-document shape kept for backward-compatible callers
+            // (e.g. tests, or any UI code reading .fileName/.project directly):
+            // reflects the single result when there was only one document.
+            fileName: results.length === 1 ? results[0].fileName : undefined,
+            project: results.length === 1 ? results[0].project : undefined,
+            code: results.length === 1 ? results[0].code : undefined,
+            message:
+                results.length === 1
+                    ? results[0].message
+                    : errorCount > 0
+                      ? errorCount + " of " + results.length + " backup(s) failed."
+                      : okCount + " of " + results.length + " document(s) backed up."
+        };
+
+        // A distinct event type from the per-document "success"/"error"/"skipped"
+        // emitted inside backupOneDocument, so a future listener never sees the
+        // same document reported twice under different meanings.
+        notify({ type: "cycle-complete", status: status, result: summary });
+        return summary;
     } finally {
         lock.busy = false;
         lock.project = null;

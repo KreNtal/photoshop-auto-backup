@@ -32,6 +32,7 @@ function cacheElements() {
         "customInterval",
         "customIntervalApply",
         "backupNow",
+        "scopePicker",
         "modePicker",
         "folderPath",
         "openFolder",
@@ -205,6 +206,13 @@ function bindEvents() {
 
     elements.backupNow.addEventListener("click", () => call("backupNow"));
 
+    elements.scopePicker.addEventListener("change", (event) => {
+        const value = readPickerValue(elements.scopePicker, event);
+        if (value) {
+            call("changeScope", value);
+        }
+    });
+
     elements.modePicker.addEventListener("change", (event) => {
         const value = readPickerValue(elements.modePicker, event);
         if (value) {
@@ -252,6 +260,7 @@ function applySettings(settings, folderPath) {
     show(elements.customIntervalRow, !isPreset);
     elements.customInterval.value = String(settings.intervalMinutes);
 
+    setPickerValue(elements.scopePicker, settings.documentScope);
     setPickerValue(elements.modePicker, settings.backupMode);
 
     const isMaxBackupsPreset = settingsManager.ALLOWED_MAX_BACKUPS.indexOf(settings.maxBackups) >= 0;

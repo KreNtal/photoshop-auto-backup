@@ -99,8 +99,9 @@ a folder with **Change**.
 | Setting | Values | Default |
 | --- | --- | --- |
 | Automatic backup | ON / OFF | OFF (ON after onboarding) |
+| Documents | Active document only / All open documents | Active document only |
 | Interval | 1, 2, 5, 10, 15, 30 minutes, or custom (1–1440) | 5 minutes |
-| Mode | Per project / Single global folder | Per project |
+| Mode | Per project (in subfolders) / Single global folder | Per project |
 | Backup folder | any folder you grant access to | — |
 | Maximum backups | 1, 3, 5, 10, 20, Unlimited, or custom (1–10000) | 20 |
 | Back up only if changed | on / off | on |
@@ -205,18 +206,25 @@ this as a *skip*, not a failure, and retries at the next interval.
 
 ## Multi-document behaviour
 
-Photoshop can have several documents open. This version backs up **the document
-that is active when the backup runs**, and the panel always shows which project
-that is.
+Photoshop can have several documents open. The **Documents** setting decides
+which ones a backup cycle (automatic or "Back up now") targets:
 
-The architecture is ready for "back up all open documents":
+- **Active document only** (default) — backs up whichever document is active
+  when the cycle runs.
+- **All open documents** — backs up every open document that is eligible
+  (local PSD/PSB), one after another, inside the same cycle. A document that
+  is unsaved, cloud-based, or an unsupported format is skipped individually
+  and does not stop the others from being backed up.
 
-- state is keyed per project (`settings.projects[projectKey]`), never global;
-- `backupManager.runBackup({ document })` already accepts an explicit document;
-- `documentManager.getOpenDocuments()` already enumerates them.
+State is always keyed per project (`settings.projects[projectKey]`), never a
+single shared variable, so each open document keeps its own independent
+"last backup" and change-detection signature regardless of the scope.
 
-Adding the feature means looping over the open documents inside the timer runner;
-no rewrite is required.
+A single cycle-level lock still applies: with "All open documents", the whole
+cycle (every document in it) is treated as one unit for the concurrency lock
+described below — a slow cycle is never started twice in parallel, but one
+document's failure or a modal-busy retry does not abort the rest of the
+cycle.
 
 ---
 
@@ -265,7 +273,7 @@ Settings live in `localStorage` under the key
 `com.lusprite.photoshop.autobackup.settings.v1`:
 
 ```
-enabled, intervalMinutes, backupMode, backupFolderToken,
+enabled, intervalMinutes, backupMode, backupFolderToken, documentScope,
 maxBackups, backupOnlyIfChanged, onboardingDone,
 projects { <projectKey>: { name, folderName, lastBackupAt,
                            lastBackupFileName, lastBackupFolderPath,

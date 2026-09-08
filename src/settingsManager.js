@@ -13,6 +13,9 @@ const logger = require("./logger.js");
 
 const BACKUP_MODES = { PER_PROJECT: "perProject", GLOBAL: "global" };
 
+/** Which document(s) a backup cycle (automatic or "Back up now") targets. */
+const DOCUMENT_SCOPES = { ACTIVE: "active", ALL_OPEN: "allOpen" };
+
 const ALLOWED_INTERVALS = [1, 2, 5, 10, 15, 30];
 const ALLOWED_MAX_BACKUPS = [1, 3, 5, 10, 20, 0]; // 0 = unlimited
 
@@ -25,6 +28,7 @@ const DEFAULTS = {
     intervalMinutes: 5,
     backupMode: BACKUP_MODES.PER_PROJECT,
     backupFolderToken: null,
+    documentScope: DOCUMENT_SCOPES.ACTIVE,
     maxBackups: 20,
     backupOnlyIfChanged: true,
     onboardingDone: false,
@@ -79,6 +83,11 @@ function validate(raw) {
 
     result.backupMode =
         raw.backupMode === BACKUP_MODES.GLOBAL ? BACKUP_MODES.GLOBAL : BACKUP_MODES.PER_PROJECT;
+
+    result.documentScope =
+        raw.documentScope === DOCUMENT_SCOPES.ALL_OPEN
+            ? DOCUMENT_SCOPES.ALL_OPEN
+            : DOCUMENT_SCOPES.ACTIVE;
 
     if (typeof raw.backupFolderToken === "string" && raw.backupFolderToken) {
         result.backupFolderToken = raw.backupFolderToken;
@@ -222,6 +231,7 @@ function reset() {
 
 module.exports = {
     BACKUP_MODES,
+    DOCUMENT_SCOPES,
     ALLOWED_INTERVALS,
     ALLOWED_MAX_BACKUPS,
     MIN_INTERVAL_MINUTES,

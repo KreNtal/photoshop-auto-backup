@@ -43,6 +43,17 @@
             <sp-checkbox id="autoToggle"><span id="autoToggleLabel">OFF</span></sp-checkbox>
         </div>
 
+        <!-- Documents to back up -->
+        <div class="block">
+            <span class="label">Documents</span>
+            <sp-picker id="scopePicker" size="s" class="full">
+                <sp-menu slot="options">
+                    <sp-menu-item value="active">Active document only</sp-menu-item>
+                    <sp-menu-item value="allOpen">All open documents</sp-menu-item>
+                </sp-menu>
+            </sp-picker>
+        </div>
+
         <!-- Mode -->
         <div class="block">
             <span class="label">Mode</span>
