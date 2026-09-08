@@ -414,11 +414,6 @@ const handlers = {
         refreshAll();
     },
 
-    changeOnlyIfChanged(enabled) {
-        settingsManager.update({ backupOnlyIfChanged: enabled === true });
-        refreshAll();
-    },
-
     clearLog() {
         logger.clear();
         runtime.lastErrorMessage = null;
@@ -454,6 +449,8 @@ async function init() {
     ui.init(handlers);
     runtime.uiReady = true;
     runtime.panelVisible = true;
+
+    storageManager.getPluginVersion().then((version) => ui.setVersion(version));
 
     timerManager.configure({
         intervalMinutes: settings.intervalMinutes,

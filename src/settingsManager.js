@@ -30,7 +30,6 @@ const DEFAULTS = {
     backupFolderToken: null,
     documentScope: DOCUMENT_SCOPES.ACTIVE,
     maxBackups: 5,
-    backupOnlyIfChanged: true,
     onboardingDone: false,
     projects: {},
     // Project keys the user chose to exclude ("never back this one up"), kept
@@ -116,7 +115,9 @@ function validate(raw) {
     const maxBackups = toInt(raw.maxBackups, DEFAULTS.maxBackups);
     result.maxBackups = maxBackups >= 0 && maxBackups <= 10000 ? maxBackups : DEFAULTS.maxBackups;
 
-    result.backupOnlyIfChanged = raw.backupOnlyIfChanged !== false;
+    // "Only back up if the document changed" is no longer a user setting: it
+    // is always on (see backupManager.js). A `backupOnlyIfChanged` field from
+    // an older install, if present, is simply not read here.
     result.onboardingDone = raw.onboardingDone === true;
 
     result.projects = {};

@@ -165,10 +165,11 @@ async function backupOneDocument(doc, opts) {
         const settings = settingsManager.get();
         const projectState = settingsManager.getProjectState(descriptor.key);
 
-        // 2. Change detection.
+        // 2. Change detection. Always on (not a user setting): a backup only
+        // runs when the document actually changed since the last one, unless
+        // `force` (a manual "Backup now") overrides it.
         const signature = documentManager.getChangeSignature(info.document);
         if (
-            settings.backupOnlyIfChanged &&
             opts.force !== true &&
             signature &&
             projectState &&

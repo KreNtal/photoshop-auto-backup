@@ -32,14 +32,17 @@
     <div id="mainPanel" class="panel hidden">
 
         <div class="header">
-            <span class="title">Photoshop Auto Backup</span>
+            <div class="header-top">
+                <span class="title">Photoshop Auto Backup<span class="author"> by KreNtal</span></span>
+                <span id="pluginVersion" class="version"></span>
+            </div>
             <div class="header-status"><span id="statusDot" class="dot dot-idle"></span><span
                     id="statusText">Idle</span></div>
         </div>
 
         <!-- Automatic backup toggle -->
         <div class="row row-between">
-            <span class="label">Automatic backup</span>
+            <span class="label">Automatic backup <span class="hint">(if document changed)</span></span>
             <sp-checkbox id="autoToggle"><span id="autoToggleLabel">OFF</span></sp-checkbox>
         </div>
 
@@ -122,11 +125,6 @@
         <!-- Manual backup -->
         <div class="block block-spaced">
             <sp-button id="backupNow" variant="cta" class="full">Backup now</sp-button>
-        </div>
-
-        <!-- Change detection -->
-        <div class="block">
-            <sp-checkbox id="onlyIfChanged">Back up only if the document changed</sp-checkbox>
         </div>
 
         <div class="separator"></div>

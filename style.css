@@ -59,10 +59,32 @@ body {
     margin-bottom: 8px;
 }
 
+.header-top {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
 .title {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.02em;
+}
+
+.author {
+    font-size: 10px;
+    font-weight: 400;
+    color: #9a9a9a;
+    letter-spacing: normal;
+}
+
+.version {
+    font-size: 10px;
+    color: #8a8a8a;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .header-status {
@@ -104,6 +126,13 @@ body {
     letter-spacing: 0.05em;
     color: #9a9a9a;
     margin-bottom: 3px;
+}
+
+.hint {
+    text-transform: none;
+    letter-spacing: normal;
+    color: #7a7a7a;
+    font-weight: 400;
 }
 
 .value {

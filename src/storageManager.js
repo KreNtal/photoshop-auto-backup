@@ -200,6 +200,26 @@ async function getEntryMetadata(entry) {
     }
 }
 
+/**
+ * Reads the "version" field from the plugin's own manifest.json, so the
+ * panel can show it without the value having to be duplicated and kept in
+ * sync by hand. `getPluginFolder()` gives read-only access to the plugin's
+ * install directory regardless of the localFileSystem permission level.
+ * @returns {Promise<string|null>} null if it could not be read.
+ */
+async function getPluginVersion() {
+    try {
+        const pluginFolder = await fs.getPluginFolder();
+        const entry = await pluginFolder.getEntry("manifest.json");
+        const text = await entry.read();
+        const manifest = JSON.parse(text);
+        return typeof manifest.version === "string" ? manifest.version : null;
+    } catch (err) {
+        console.warn("[AutoBackup] getPluginVersion:", err);
+        return null;
+    }
+}
+
 function getNativePath(entry) {
     try {
         return entry && entry.nativePath ? String(entry.nativePath) : "";
@@ -255,5 +275,6 @@ module.exports = {
     deleteEntry,
     getEntryMetadata,
     getNativePath,
+    getPluginVersion,
     openInFileExplorer
 };

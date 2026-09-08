@@ -25,6 +25,7 @@ function cacheElements() {
         "onboardingSkip",
         "onboardingError",
         "mainPanel",
+        "pluginVersion",
         "autoToggle",
         "autoToggleLabel",
         "intervalPicker",
@@ -42,7 +43,6 @@ function cacheElements() {
         "customMaxBackupsRow",
         "customMaxBackups",
         "customMaxBackupsApply",
-        "onlyIfChanged",
         "documentInfo",
         "excludeDocument",
         "lastBackup",
@@ -247,10 +247,6 @@ function bindEvents() {
         call("changeMaxBackups", parseInt(elements.customMaxBackups.value, 10));
     });
 
-    elements.onlyIfChanged.addEventListener("change", () => {
-        call("changeOnlyIfChanged", elements.onlyIfChanged.checked === true);
-    });
-
     elements.clearLog.addEventListener("click", () => call("clearLog"));
 
     elements.excludeDocument.addEventListener("change", () => {
@@ -279,8 +275,6 @@ function applySettings(settings, folderPath) {
     setPickerValue(elements.maxBackupsPicker, isMaxBackupsPreset ? String(settings.maxBackups) : "custom");
     show(elements.customMaxBackupsRow, !isMaxBackupsPreset);
     elements.customMaxBackups.value = String(settings.maxBackups);
-
-    elements.onlyIfChanged.checked = settings.backupOnlyIfChanged === true;
 
     elements.openFolder.disabled = !folderPath;
 
@@ -394,6 +388,10 @@ function setOnboardingError(message) {
     }
 }
 
+function setVersion(version) {
+    elements.pluginVersion.textContent = version ? "v" + version : "";
+}
+
 function init(eventHandlers) {
     handlers = eventHandlers || {};
     cacheElements();
@@ -403,6 +401,7 @@ function init(eventHandlers) {
 module.exports = {
     STATUS,
     init,
+    setVersion,
     applySettings,
     setDocumentInfo,
     setExcludeCheckbox,

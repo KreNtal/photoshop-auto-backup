@@ -65,6 +65,13 @@ characters that are illegal in file names replaced by `_`.
 
 ---
 
+## Normal installation
+
+Double click the release file or unzip it and put it in a subfolder inside Photoshop plugins
+folder.
+
+---
+
 ## Installing in development mode
 
 1. Install **UXP Developer Tools** from the Creative Cloud desktop app.
@@ -96,15 +103,14 @@ a folder with **Change**.
 
 ## Configuration
 
-| Setting | Values | Default |
-| --- | --- | --- |
-| Automatic backup | ON / OFF | OFF (ON after onboarding) |
-| Documents | Active document only / All open documents | Active document only |
-| Interval | 1, 2, 5, 10, 15, 30 minutes, or custom (1–1440) | 5 minutes |
-| Mode | Per project (in subfolders) / Single global folder | Per project |
-| Backup folder | any folder you grant access to | — |
-| Maximum backups | 1, 3, 5, 10, 20, Unlimited, or custom (1–10000) | 5 |
-| Back up only if changed | on / off | on |
+| Setting                 | Values                                             | Default                   |
+| ----------------------- | -------------------------------------------------- | ------------------------- |
+| Automatic backup        | ON / OFF                                           | OFF (ON after onboarding) |
+| Documents               | Active document only / All open documents          | Active document only      |
+| Interval                | 1, 2, 5, 10, 15, 30 minutes, or custom (1–1440)    | 5 minutes                 |
+| Mode                    | Per project (in subfolders) / Single global folder | Per project               |
+| Backup folder           | any folder you grant access to                     | —                         |
+| Maximum backups         | 1, 3, 5, 10, 20, Unlimited, or custom (1–10000)    | 5                         |
 
 Both modes share the same backup folder — switching from "Per project" to
 "Single global folder" (or back) does not change or lose the selected
@@ -132,8 +138,10 @@ Setting the limit to **Unlimited** disables deletion entirely.
 
 ## Change detection
 
-The "back up only if changed" option compares `document.activeHistoryState.id`
-with the value stored at the previous backup for that project.
+Automatic backups only run when the document actually changed since the last
+one — this is always on, not a user setting. It compares
+`document.activeHistoryState.id` with the value stored at the previous backup
+for that project.
 
 `document.saved` is deliberately **not** used as the criterion: a
 `saveAs(..., asCopy = true)` does not (and must not) mark the original document
@@ -148,19 +156,20 @@ as saved, so `saved` would give the wrong answer in both directions.
 - If the history state cannot be read at all, the plugin behaves conservatively
   and performs the backup.
 
-If you want a guaranteed copy at every interval, turn this option off.
+If you want a guaranteed copy regardless of whether anything changed, use
+**Backup now**, which always overrides this check.
 
 ---
 
 ## Supported documents
 
-| Document | Behaviour |
-| --- | --- |
-| Local PSD | Backed up as PSD |
-| Local PSB | Backed up as PSB |
-| Never saved (no path yet) | Skipped, with an explicit message asking you to save once first |
-| Photoshop cloud document | Skipped, with an explicit message |
-| Any other format (JPG, TIFF, PNG…) | Skipped as unsupported |
+| Document                           | Behaviour                                                       |
+| ---------------------------------- | --------------------------------------------------------------- |
+| Local PSD                          | Backed up as PSD                                                |
+| Local PSB                          | Backed up as PSB                                                |
+| Never saved (no path yet)          | Skipped, with an explicit message asking you to save once first |
+| Photoshop cloud document           | Skipped, with an explicit message                               |
+| Any other format (JPG, TIFF, PNG…) | Skipped as unsupported                                          |
 
 Nothing fails silently: every skip and every error is shown in the panel and
 written to the log.
@@ -171,7 +180,7 @@ written to the log.
 
 **File system access.** A UXP plugin has no arbitrary file system access. Every
 folder must be granted by the user through the UXP picker. The grant is stored
-as a *persistent token* (`createPersistentToken` / `getEntryForPersistentToken`)
+as a _persistent token_ (`createPersistentToken` / `getEntryForPersistentToken`)
 so it survives Photoshop restarts, but a token can stop resolving when the folder
 is moved or deleted, or the drive is unplugged. When that happens the plugin
 reports "backup folder is no longer reachable" and you simply pick the folder
@@ -200,7 +209,7 @@ Keep the panel open (docked is fine) if you want the timer to be reliable.
 **Modal state.** `saveAs` runs inside `executeAsModal`. If Photoshop is already
 in a modal state — a dialog is open, a transform is in progress, a brush stroke
 is being drawn — the request is refused with error number 9. The plugin treats
-this as a *skip*, not a failure, and retries at the next interval.
+this as a _skip_, not a failure, and retries at the next interval.
 
 ---
 
@@ -284,12 +293,12 @@ log list.
 
 ## Status indicator
 
-| Indicator | Meaning |
-| --- | --- |
-| 🟢 Active | Automatic backup on, folder available, supported document |
-| 🔵 Backing up… | A backup is running right now |
-| 🟡 Idle | Automatic backup off, no folder configured, or no supported document |
-| 🔴 Error | The last operation failed; details in "Last error" |
+| Indicator      | Meaning                                                              |
+| -------------- | -------------------------------------------------------------------- |
+| 🟢 Active      | Automatic backup on, folder available, supported document            |
+| 🔵 Backing up… | A backup is running right now                                        |
+| 🟡 Idle        | Automatic backup off, no folder configured, or no supported document |
+| 🔴 Error       | The last operation failed; details in "Last error"                   |
 
 Successful backups are never announced with an intrusive dialog — they only
 update the panel and the log.
@@ -303,7 +312,7 @@ Settings live in `localStorage` under the key
 
 ```
 enabled, intervalMinutes, backupMode, backupFolderToken, documentScope,
-maxBackups, backupOnlyIfChanged, onboardingDone,
+maxBackups, onboardingDone,
 projects { <projectKey>: { name, folderName, lastBackupAt,
                            lastBackupFileName, lastBackupFolderPath,
                            lastSignature } },
@@ -360,22 +369,22 @@ photoshop-auto-backup/
 
 ## Photoshop UXP APIs used
 
-| Purpose | API |
-| --- | --- |
-| Active document | `require("photoshop").app.activeDocument` |
-| Open documents | `app.documents` |
-| Name / path / format | `Document.title`, `Document.path` |
-| Cloud document | `Document.cloudDocument` |
-| Change detection | `Document.activeHistoryState.id` |
-| Save a copy | `Document.saveAs.psd(file, options, true)` / `.psb(...)` |
-| Modal execution | `require("photoshop").core.executeAsModal(fn, opts)` |
-| Folder picker | `require("uxp").storage.localFileSystem.getFolder()` |
-| Permission persistence | `createPersistentToken()` / `getEntryForPersistentToken()` |
-| Folder contents | `Folder.getEntries()`, `Folder.createEntry(name, {type})` |
-| File creation | `Folder.createFile(name, { overwrite: false })` |
-| Deletion | `Entry.delete()` |
-| Open folder in file explorer | `require("uxp").shell.openPath(path, developerText)` |
-| Panel lifecycle | `require("uxp").entrypoints.setup({ panels })` |
+| Purpose                      | API                                                        |
+| ---------------------------- | ---------------------------------------------------------- |
+| Active document              | `require("photoshop").app.activeDocument`                  |
+| Open documents               | `app.documents`                                            |
+| Name / path / format         | `Document.title`, `Document.path`                          |
+| Cloud document               | `Document.cloudDocument`                                   |
+| Change detection             | `Document.activeHistoryState.id`                           |
+| Save a copy                  | `Document.saveAs.psd(file, options, true)` / `.psb(...)`   |
+| Modal execution              | `require("photoshop").core.executeAsModal(fn, opts)`       |
+| Folder picker                | `require("uxp").storage.localFileSystem.getFolder()`       |
+| Permission persistence       | `createPersistentToken()` / `getEntryForPersistentToken()` |
+| Folder contents              | `Folder.getEntries()`, `Folder.createEntry(name, {type})`  |
+| File creation                | `Folder.createFile(name, { overwrite: false })`            |
+| Deletion                     | `Entry.delete()`                                           |
+| Open folder in file explorer | `require("uxp").shell.openPath(path, developerText)`       |
+| Panel lifecycle              | `require("uxp").entrypoints.setup({ panels })`             |
 
 `shell.openPath()` requires `requiredPermissions.launchProcess` to be declared
 in the manifest. Opening a plain folder (no file extension) additionally
