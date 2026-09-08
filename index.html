@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- ============ ONBOARDING (first run) ============ -->
+    <div id="onboarding" class="onboarding hidden">
+        <h1>Photoshop Auto Backup</h1>
+        <p class="muted">
+            This plugin automatically creates timestamped safety copies of the
+            active Photoshop document (PSD/PSB) at a regular interval.
+        </p>
+        <ul class="bullets">
+            <li>The original file is never modified, renamed or replaced.</li>
+            <li>Every backup is named with its date and time.</li>
+            <li>Old backups are pruned according to the retention limit.</li>
+        </ul>
+        <p class="muted small">
+            To get started, choose the main backup folder. Photoshop asks for
+            permission once: the grant is then remembered across sessions.
+        </p>
+        <sp-button id="onboardingChooseFolder" variant="cta">Choose backup folder</sp-button>
+        <sp-button id="onboardingSkip" variant="secondary" quiet>Set up later</sp-button>
+        <p id="onboardingError" class="error-text hidden"></p>
+    </div>
+
+    <!-- ============ MAIN PANEL ============ -->
+    <div id="mainPanel" class="panel hidden">
+
+        <div class="header">
+            <span class="title">Photoshop Auto Backup</span>
+            <div class="header-status"><span id="statusDot" class="dot dot-idle"></span><span
+                    id="statusText">Idle</span></div>
+        </div>
+
+        <!-- Automatic backup toggle -->
+        <div class="row row-between">
+            <span class="label">Automatic backup</span>
+            <sp-checkbox id="autoToggle"><span id="autoToggleLabel">OFF</span></sp-checkbox>
+        </div>
+
+        <!-- Mode -->
+        <div class="block">
+            <span class="label">Mode</span>
+            <sp-radio-group id="modeGroup" column>
+                <sp-radio id="modePerProject" value="perProject">Per project</sp-radio>
+                <sp-radio id="modeGlobal" value="global">Single global folder</sp-radio>
+            </sp-radio-group>
+        </div>
+
+        <!-- Folder -->
+        <div class="block">
+            <span class="label">Backup folder</span>
+            <div id="folderPath" class="path muted">No folder selected</div>
+            <sp-button id="changeFolder" size="s" variant="secondary" class="full">Change</sp-button>
+        </div>
+
+        <!-- Retention -->
+        <div class="block">
+            <span class="label">Maximum backups</span>
+            <sp-picker id="maxBackupsPicker" size="s" class="full">
+                <sp-menu slot="options">
+                    <sp-menu-item value="1">1</sp-menu-item>
+                    <sp-menu-item value="3">3</sp-menu-item>
+                    <sp-menu-item value="5">5</sp-menu-item>
+                    <sp-menu-item value="10">10</sp-menu-item>
+                    <sp-menu-item value="20">20</sp-menu-item>
+                    <sp-menu-item value="0">Unlimited</sp-menu-item>
+                    <sp-menu-item value="custom">Custom…</sp-menu-item>
+                </sp-menu>
+            </sp-picker>
+            <div id="customMaxBackupsRow" class="row hidden">
+                <sp-textfield id="customMaxBackups" type="number" min="1" max="10000" size="s" class="full"
+                    placeholder="backups"></sp-textfield>
+                <sp-button id="customMaxBackupsApply" size="s" variant="secondary">Set</sp-button>
+            </div>
+        </div>
+
+        <!-- Interval -->
+        <div class="block">
+            <span class="label">Interval</span>
+            <sp-picker id="intervalPicker" size="s" class="full">
+                <sp-menu slot="options">
+                    <sp-menu-item value="1">1 minute</sp-menu-item>
+                    <sp-menu-item value="2">2 minutes</sp-menu-item>
+                    <sp-menu-item value="5">5 minutes</sp-menu-item>
+                    <sp-menu-item value="10">10 minutes</sp-menu-item>
+                    <sp-menu-item value="15">15 minutes</sp-menu-item>
+                    <sp-menu-item value="30">30 minutes</sp-menu-item>
+                    <sp-menu-item value="custom">Custom…</sp-menu-item>
+                </sp-menu>
+            </sp-picker>
+            <div id="customIntervalRow" class="row hidden">
+                <sp-textfield id="customInterval" type="number" min="1" max="1440" size="s" class="full"
+                    placeholder="minutes"></sp-textfield>
+                <sp-button id="customIntervalApply" size="s" variant="secondary">Set</sp-button>
+            </div>
+        </div>
+
+        <!-- Manual backup -->
+        <div class="block block-spaced">
+            <sp-button id="backupNow" variant="cta" class="full">Back up now</sp-button>
+        </div>
+
+        <!-- Change detection -->
+        <div class="block">
+            <sp-checkbox id="onlyIfChanged">Back up only if the document changed</sp-checkbox>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- Status -->
+        <div class="block">
+            <span class="label">Document</span>
+            <div id="documentInfo" class="value muted">—</div>
+        </div>
+
+        <div class="block">
+            <span class="label">Last backup</span>
+            <div id="lastBackup" class="value muted">—</div>
+        </div>
+
+        <div class="block">
+            <span class="label">Next backup</span>
+            <div id="nextBackup" class="value muted">—</div>
+        </div>
+
+        <div id="errorBox" class="error-box hidden">
+            <div class="error-title">Last error</div>
+            <div id="errorText" class="error-text"></div>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="block">
+            <div class="row row-between">
+                <span class="label">Log</span>
+                <sp-button id="clearLog" size="s" variant="secondary" quiet>Clear</sp-button>
+            </div>
+            <div id="logList" class="log"></div>
+        </div>
+    </div>
+
+    <script src="src/main.js"></script>
+</body>
+
+</html>
