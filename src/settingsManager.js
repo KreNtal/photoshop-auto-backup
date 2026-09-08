@@ -113,7 +113,7 @@ function validate(raw) {
     }
 
     const maxBackups = toInt(raw.maxBackups, DEFAULTS.maxBackups);
-    result.maxBackups = maxBackups >= 0 && maxBackups <= 10000 ? maxBackups : DEFAULTS.maxBackups;
+    result.maxBackups = maxBackups >= 0 && maxBackups <= 100 ? maxBackups : DEFAULTS.maxBackups;
 
     // "Only back up if the document changed" is no longer a user setting: it
     // is always on (see backupManager.js). A `backupOnlyIfChanged` field from

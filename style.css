@@ -124,26 +124,29 @@ body {
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #9a9a9a;
+    color: #c9c9c9;
     margin-bottom: 3px;
+}
+
+/* Label for a row paired with a live toggle (as opposed to a passive
+   section heading): brighter than .label so the control it names reads
+   clearly rather than looking dimmed/disabled. */
+.toggle-label {
+    font-size: 11px;
+    color: #e6e6e6;
+    font-weight: 600;
 }
 
 .hint {
     text-transform: none;
     letter-spacing: normal;
-    color: #7a7a7a;
+    color: #9a9a9a;
     font-weight: 400;
 }
 
 .value {
     font-size: 11px;
     word-break: break-all;
-}
-
-.exclude-checkbox {
-    display: block;
-    margin-top: 5px;
-    font-size: 10px;
 }
 
 .muted {

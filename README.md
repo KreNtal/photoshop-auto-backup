@@ -3,6 +3,8 @@
 A UXP plugin for modern Adobe Photoshop that automatically creates timestamped
 backup copies of the open document, without ever touching the original file.
 
+See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
+
 ---
 
 ## What it does
@@ -110,7 +112,7 @@ a folder with **Change**.
 | Interval                | 1, 2, 5, 10, 15, 30 minutes, or custom (1–1440)    | 5 minutes                 |
 | Mode                    | Per project (in subfolders) / Single global folder | Per project               |
 | Backup folder           | any folder you grant access to                     | —                         |
-| Maximum backups         | 1, 3, 5, 10, 20, Unlimited, or custom (1–10000)    | 5                         |
+| Maximum backups         | 1, 3, 5, 10, 20, Unlimited, or custom (1–100)      | 5                         |
 
 Both modes share the same backup folder — switching from "Per project" to
 "Single global folder" (or back) does not change or lose the selected
@@ -249,8 +251,8 @@ automatic cycle runs across many open documents.
 
 ### Excluding specific documents
 
-Any document can be excluded from backups with the **"Exclude this document
-from backups"** checkbox, shown under the **Document** line in the panel. It
+Any document can be excluded from backups with the **"Exclude current from
+every backup"** checkbox, shown right under the **Backup now** button. It
 always targets whichever document is currently active — to exclude another
 one, switch to it first and check the box there.
 

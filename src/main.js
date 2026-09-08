@@ -405,7 +405,7 @@ const handlers = {
         if (!Number.isFinite(value) || value < 0) {
             return;
         }
-        const clamped = Math.min(10000, Math.round(value));
+        const clamped = Math.min(100, Math.round(value));
         const settings = settingsManager.update({ maxBackups: clamped });
         logger.info(
             "Retention limit: " +
