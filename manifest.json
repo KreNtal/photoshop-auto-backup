@@ -2,7 +2,7 @@
     "manifestVersion": 5,
     "id": "com.krental.photoshop.autobackup",
     "name": "Photoshop Auto Backup",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "main": "index.html",
     "host": [
         {
@@ -61,6 +61,10 @@
         }
     ],
     "requiredPermissions": {
-        "localFileSystem": "request"
+        "localFileSystem": "request",
+        "launchProcess": {
+            "schemes": [],
+            "extensions": [""]
+        }
     }
 }

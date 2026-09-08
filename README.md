@@ -333,6 +333,12 @@ photoshop-auto-backup/
 | Open folder in file explorer | `require("uxp").shell.openPath(path, developerText)` |
 | Panel lifecycle | `require("uxp").entrypoints.setup({ panels })` |
 
+`shell.openPath()` requires `requiredPermissions.launchProcess` to be declared
+in the manifest. Opening a plain folder (no file extension) additionally
+requires an empty string `""` in `launchProcess.extensions` — without it,
+Photoshop rejects the call with `Extension "" is not accepted for the path
+...`. The first call also shows the user a one-time native consent dialog.
+
 `batchPlay` is not used: every operation this plugin needs is available through
 the documented DOM API.
 

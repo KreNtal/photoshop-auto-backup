@@ -219,16 +219,24 @@ async function openInFileExplorer(nativePath, developerText) {
     if (!nativePath) {
         return { ok: false, error: "No folder path to open." };
     }
+    if (!shell || typeof shell.openPath !== "function") {
+        console.error("[AutoBackup] uxp.shell.openPath is not available in this environment.");
+        return { ok: false, error: "Opening a folder in the file explorer is not supported here." };
+    }
     try {
         const result = await shell.openPath(nativePath, developerText || "");
         // openPath resolves with "" on success, or an error message string.
         if (result) {
+            console.warn("[AutoBackup] shell.openPath reported an error:", result);
             return { ok: false, error: result };
         }
         return { ok: true };
     } catch (err) {
-        const wrapped = fromNative(err, CODES.FOLDER_UNAVAILABLE);
-        return { ok: false, error: wrapped.message };
+        // Surface the real native message instead of guessing at a cause:
+        // this path is not a folder-token failure, so the generic
+        // FOLDER_UNAVAILABLE wording used elsewhere would be misleading here.
+        console.error("[AutoBackup] shell.openPath threw:", err);
+        return { ok: false, error: (err && err.message) || String(err) };
     }
 }
 
